@@ -43,7 +43,7 @@ namespace DalamudPlugin
 
         private void OnMarketBoardSearch(string command, string arguments) {
             if (string.IsNullOrEmpty(arguments)) {
-                this.pluginInterface.Chat.Print("No item specified.");
+                this.pluginInterface.Chat.PrintError("No item specified.");
                 return;
             }
 
@@ -135,17 +135,9 @@ namespace DalamudPlugin
                 }
 
                 if (hq) {
-                    history = history.Where(x => {
-                        dynamic ary = x;
+                    history = history.Where(x => (bool) x["IsHQ"]).ToList();
 
-                        return (bool) ary.IsHQ;
-                    }).ToList();
-
-                    prices = prices.Where(x => {
-                        dynamic ary = x;
-
-                        return (bool) ary.IsHQ;
-                    }).ToList();
+                    prices = prices.Where(x => (bool) x["IsHQ"]).ToList();
                 }
 
                 
@@ -158,7 +150,7 @@ namespace DalamudPlugin
                                                   ? "No current offerings for this item."
                                                   : $"Current lowest offering:\n    {DateTimeOffset.FromUnixTimeSeconds((long) prices[0]["Added"]).ToString("R")}\n    {prices[0]["PricePerUnit"]:N0} /u, {prices[0]["Quantity"]} units");
             } catch (Exception e) {
-                this.pluginInterface.Chat.Print("An error occured when getting market board data.");
+                this.pluginInterface.Chat.PrintError("An error occured when getting market board data.");
                 Log.Error(e, "Could not get market board data.");
             }
         }
@@ -183,9 +175,7 @@ namespace DalamudPlugin
 
         public static async Task<JObject> GetWorld(int world)
         {
-            var res = await Get("World/" + world);
-
-            return res;
+            return await Get("World/" + world);;
         }
 
         public static async Task<dynamic> Get(string endpoint, params string[] parameters)

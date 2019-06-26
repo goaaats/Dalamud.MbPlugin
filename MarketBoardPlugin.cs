@@ -31,28 +31,28 @@ namespace DalamudPlugin
             });
         }
 
-        public void Deinitialize()
+        public void Dispose()
         {
             // Remove command handlers
             pluginInterface.CommandManager.RemoveHandler("/mb");
         }
 
-		#endregion
+        #endregion
 
         #region Chat command handlers
 
         private void OnMarketBoardSearch(string command, string arguments) {
             if (string.IsNullOrEmpty(arguments)) {
-                this.pluginInterface.Chat.PrintError("No item specified.");
+                this.pluginInterface.Framework.Gui.Chat.PrintError("No item specified.");
                 return;
             }
 
-            this.pluginInterface.Chat.Print("Searching for market board data...");
+            this.pluginInterface.Framework.Gui.Chat.Print("Searching for market board data...");
             Task.Run(() => {
                 var world = pluginInterface.ClientState.LocalPlayer.CurrentWorld.Name;
                 var cheapest = false;
 
-                if (this.pluginInterface.Chat.LastLinkedItemId != 0 && arguments.Contains("<item>")) {
+                if (this.pluginInterface.Framework.Gui.Chat.LastLinkedItemId != 0 && arguments.Contains("<item>")) {
                     if (arguments != "<item>")
                         world = arguments.Replace("<item>", "").Replace(" ", "");
 
@@ -60,7 +60,7 @@ namespace DalamudPlugin
                         cheapest = true;
                     }
 
-                    Task.Run(() => SendItemInfo(this.pluginInterface.Chat.LastLinkedItemId, (this.pluginInterface.Chat.LastLinkedItemFlags & 1) == 1, world, cheapest));
+                    Task.Run(() => SendItemInfo(this.pluginInterface.Framework.Gui.Chat.LastLinkedItemId, (this.pluginInterface.Framework.Gui.Chat.LastLinkedItemFlags & 1) == 1, world, cheapest));
 
                     return;
                 }
@@ -88,7 +88,7 @@ namespace DalamudPlugin
                 dynamic candidates = Search(searchTerm, "Item").GetAwaiter().GetResult();
 
                 if (candidates.Results.Count == 0) {
-                    this.pluginInterface.Chat.Print("No items found using that name.");
+                    this.pluginInterface.Framework.Gui.Chat.Print("No items found using that name.");
                     return;
                 }
 
@@ -141,16 +141,16 @@ namespace DalamudPlugin
                 }
 
                 
-                this.pluginInterface.Chat.Print($"{(cheapest ? "Cheapest result" : "Result")} {(!string.IsNullOrEmpty(fancyItemName) ? $" for \"{fancyItemName}\"{(hq ? "(HQ)" : "")}" : "")} on {world}:");
-                this.pluginInterface.Chat.Print(history.Count == 0
+                this.pluginInterface.Framework.Gui.Chat.Print($"{(cheapest ? "Cheapest result" : "Result")} {(!string.IsNullOrEmpty(fancyItemName) ? $" for \"{fancyItemName}\"{(hq ? "(HQ)" : "")}" : "")} on {world}:");
+                this.pluginInterface.Framework.Gui.Chat.Print(history.Count == 0
                                                   ? "No recent sales for this item."
                                                   : $"Last sale:\n    {DateTimeOffset.FromUnixTimeSeconds((long) history[0]["Added"]).ToString("R")}\n    {history[0]["PricePerUnit"]:N0} /u, {history[0]["Quantity"]} units");
 
-                this.pluginInterface.Chat.Print(history.Count == 0
+                this.pluginInterface.Framework.Gui.Chat.Print(history.Count == 0
                                                   ? "No current offerings for this item."
                                                   : $"Current lowest offering:\n    {DateTimeOffset.FromUnixTimeSeconds((long) prices[0]["Added"]).ToString("R")}\n    {prices[0]["PricePerUnit"]:N0} /u, {prices[0]["Quantity"]} units");
             } catch (Exception e) {
-                this.pluginInterface.Chat.PrintError("An error occured when getting market board data.");
+                this.pluginInterface.Framework.Gui.Chat.PrintError("An error occured when getting market board data.");
                 Log.Error(e, "Could not get market board data.");
             }
         }
